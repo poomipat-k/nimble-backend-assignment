@@ -25,6 +25,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
 
+// Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, './public/uploads');
@@ -44,44 +45,60 @@ app.post('/api/keywords/upload', upload.single('csvFile'), async (req, res) => {
   const uploadedFile = req.file;
   const filePath = `${__dirname}/${uploadedFile.path}`;
   // Read file asynchronously
-  fs.readFile(filePath, 'utf8', async (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    // Handle data
-    const keywords = data?.split('\r\n');
-    for (let keyword of keywords) {
-      // Await to avoid being blocked by Google (Too many request issue)
-      const url = `https://www.google.com/search?q=${encodeURIComponent(
-        keyword
-      )}`;
-      const browser = await puppeteer.launch();
-      const page = await browser.newPage();
-      await page.goto(url);
-      const pageHtml = await page.content();
-      const data = await page.evaluate(() => {
-        // Google's adWord element class via DOM inspection
-        const adWordClass = '.CnP9N.U3A9Ac.irmCpc';
-        const adWords = document.querySelectorAll(adWordClass);
-        const adWordsCount = Math.ceil(adWords.length / 2);
-        return {
-          stats: document.getElementById('result-stats')?.textContent,
-          linksCount: document.querySelectorAll('a')?.length,
-          adWordsCount,
-        };
-      });
-      data.html = pageHtml;
-      await browser.close();
-    }
+  try {
+    fs.readFile(filePath, 'utf8', async (err, data) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+      // Handle data
+      const keywords = data?.split('\r\n');
+      for (let keyword of keywords) {
+        // Await to avoid being blocked by Google (Too many request issue)
+        const url = `https://www.google.com/search?q=${encodeURIComponent(
+          keyword
+        )}`;
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.goto(url);
+        const pageHtml = await page.content();
+        console.log('==keyword', keyword);
+        const data = await page.evaluate(() => {
+          // Google's adWord element class via DOM inspection
+          const adWordClass = '.CnP9N.U3A9Ac.irmCpc';
+          const adWords = document.querySelectorAll(adWordClass);
+          const adWordsCount = Math.ceil(adWords?.length / 2);
+          const resultStatsText =
+            document.getElementById('result-stats')?.textContent;
+          let totalResults = resultStatsText?.trim()?.split(' ')[1];
+          if (totalResults) {
+            totalResults = parseFloat(totalResults.replace(/,/g, ''));
+          }
+          console.log(totalResults);
 
+          return {
+            statText: resultStatsText,
+            totalResults,
+            linksCount: document.querySelectorAll('a')?.length,
+            adWordsCount,
+          };
+        });
+        // TODO: store data to database
+        console.log(data);
+        data.html = pageHtml;
+        await browser.close();
+      }
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
     // Delete file
     fs.rm(filePath, (err) => {
       if (err) {
         console.error(err);
       }
     });
-  });
+  }
   res.status(200).json({ response: 'received' });
 });
 
