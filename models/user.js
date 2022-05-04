@@ -8,7 +8,6 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      console.log('=====', models.Keyword);
       User.belongsToMany(models.Keyword, { through: models.UserKeyword });
     }
   }
