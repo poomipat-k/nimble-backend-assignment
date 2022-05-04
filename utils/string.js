@@ -6,4 +6,4 @@ const getRandomChars = (length) => {
   return randomStr.substring(randomStr.length - length);
 };
 
-export { getRandomChars };
+module.exports = { getRandomChars };

@@ -1,16 +1,12 @@
-/* eslint-disable no-unused-vars */
-import fs from 'fs';
-import path from 'path';
-import express from 'express';
-import bodyParser from 'body-parser';
-import multer from 'multer';
-import mime from 'mime-types';
-import cors from 'cors';
-import puppeteer from 'puppeteer';
+const fs = require('fs');
+const express = require('express');
+const bodyParser = require('body-parser');
+const multer = require('multer');
+const mime = require('mime-types');
+const cors = require('cors');
+const puppeteer = require('puppeteer');
 
-const __dirname = path.resolve();
-
-import { getRandomChars } from './utils/string.js';
+const { getRandomChars } = require('./utils/string.js');
 
 const app = express();
 
