@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Keyword.belongsToMany(models.User, { through: models.UserKeyword });
+      Keyword.belongsToMany(models.user, { through: models.userKeyword });
     }
   }
   Keyword.init(
@@ -17,26 +17,46 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      ad_word_count: {
+      adWordCount: {
         type: DataTypes.INTEGER,
+        field: 'ad_word_count',
       },
-      link_count: {
+      linkCount: {
         type: DataTypes.INTEGER,
+        field: 'link_count',
       },
-      total_search_result: {
+      totalSearchResult: {
         type: DataTypes.BIGINT,
+        field: 'total_search_result',
       },
       html: {
         type: DataTypes.TEXT,
       },
-      searched_at: {
+      searchedAt: {
         allowNull: false,
         type: DataTypes.DATE,
+        field: 'searched_at',
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'created_at',
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'updated_at',
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'deleted_at',
       },
     },
     {
       sequelize,
       modelName: 'keyword',
+      tableName: 'keyword',
       paranoid: true,
     }
   );
