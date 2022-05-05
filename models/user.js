@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      User.belongsToMany(models.Keyword, { through: models.UserKeyword });
+      User.belongsToMany(models.keyword, { through: models.userKeyword });
     }
   }
   User.init(
@@ -22,10 +22,26 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      createdAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'created_at',
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'updated_at',
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'deleted_at',
+      },
     },
     {
       sequelize,
       modelName: 'user',
+      tableName: 'user',
       paranoid: true,
     }
   );
