@@ -3,6 +3,8 @@ const path = require('path');
 const multer = require('multer');
 const mime = require('mime-types');
 
+const auth = require('../middlewares/auth');
+
 const keywordService = require('../services/keyword');
 const { getRandomChars } = require('../utils/string');
 
@@ -26,7 +28,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-router.post('/keyword/upload', upload.single('csvFile'), (req, res) => {
+router.post('/keyword/upload', auth, upload.single('csvFile'), (req, res) => {
   const uploadedFile = req.file;
   const filePath = `${rootPath}/${uploadedFile.path}`;
   // Read file asynchronously
