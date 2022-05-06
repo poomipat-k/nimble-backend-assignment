@@ -1,10 +1,10 @@
-/* eslint-disable no-undef */
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 const dayjs = require('dayjs');
 
 const userDomain = require('../domains/user');
 const keywordDomain = require('../domains/keyword');
+const userKeywordDomain = require('../domains/user_keyword');
 const HttpError = require('../utils/error');
 
 const googleSearchScraping = async (keyword) => {
@@ -46,35 +46,54 @@ const uploadKeywords = async (filePath, userId) => {
     const keywords = result?.split('\r\n') || [];
     // Delete duplicate keyword in the CSV file
     const setKeywords = new Set(keywords);
-    for (let keyword of setKeywords) {
-      // TODO:
-      // if (keyword already exist in db) {
-      //   if (user do not have this keyword) {
-      //     create a new userKeyword
-      //   }
-      //   if (now - keyword.searchedAt > 1 day) {
-      //     googleSearchScraping()
-      //     update keyword data
-      //   }
-      // }
-      // else {
-      //   googleSearchScraping()
-      //   create a new keyword record
-      //   create a new userKeyword
-      // }
-      const data = await googleSearchScraping(keyword);
-      const { adWordCount, linkCount, totalSearchResult, html } = data;
-      // save to db
-      const now = dayjs();
-      await keywordDomain.create({
-        keyword,
-        adWordCount,
-        linkCount,
-        totalSearchResult,
-        html,
-        searchedAt: now,
-        userId: user.id,
-      });
+    for (let inputKeyword of setKeywords) {
+      const existingKeywordModel = await keywordDomain.findOneByKeyword(
+        inputKeyword
+      );
+      if (!existingKeywordModel) {
+        const data = await googleSearchScraping(inputKeyword);
+        const { adWordCount, linkCount, totalSearchResult, html } = data;
+        // save to db
+        const now = dayjs();
+        await keywordDomain.create({
+          keyword: inputKeyword,
+          adWordCount,
+          linkCount,
+          totalSearchResult,
+          html,
+          searchedAt: now,
+          userId: user.id,
+        });
+      } else {
+        // null if user do not have this keyword
+        const keywordOfUserModel = await userDomain.findKeyword({
+          userId,
+          keyword: existingKeywordModel.keyword,
+        });
+        if (!keywordOfUserModel) {
+          // create a new userKeyword
+          await userKeywordDomain.create({
+            userId,
+            keywordId: existingKeywordModel.id,
+          });
+        }
+        const now = dayjs();
+        const { searchedAt } = existingKeywordModel;
+        const isKeywordResultExpired = dayjs(searchedAt)
+          .add(1, 'day')
+          .isBefore(now);
+        if (isKeywordResultExpired) {
+          const data = await googleSearchScraping(inputKeyword);
+          const { adWordCount, linkCount, totalSearchResult, html } = data;
+          await existingKeywordModel.update({
+            adWordCount,
+            linkCount,
+            totalSearchResult,
+            html,
+            searchedAt: now,
+          });
+        }
+      }
     }
   } finally {
     // Delete file

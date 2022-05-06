@@ -18,6 +18,14 @@ const create = async (payload, options) => {
   return keywordModel;
 };
 
+const findOneByKeyword = (keyword) =>
+  models.keyword.findOne({
+    where: {
+      keyword,
+    },
+  });
+
 module.exports = {
   create,
+  findOneByKeyword,
 };

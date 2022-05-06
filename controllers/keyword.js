@@ -3,7 +3,7 @@ const path = require('path');
 const multer = require('multer');
 const mime = require('mime-types');
 
-const auth = require('../middlewares/auth');
+const auth = require('../middleware/auth');
 
 const keywordService = require('../services/keyword');
 const { getRandomChars } = require('../utils/string');
@@ -11,6 +11,8 @@ const { getRandomChars } = require('../utils/string');
 const router = express.Router();
 
 const rootPath = path.join(__dirname, '..');
+
+const userDomain = require('../domains/user');
 
 // Multer configuration
 const storage = multer.diskStorage({
@@ -54,6 +56,11 @@ router.get('/keyword', auth, async (req, res, next) => {
   } catch (err) {
     return next(err);
   }
+});
+
+router.get('/test', async (req, res, next) => {
+  const data = await userDomain.findKeyword({ userId: 1, keyword: 'c++' });
+  res.json(data);
 });
 
 module.exports = router;
