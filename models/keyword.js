@@ -8,7 +8,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      Keyword.belongsToMany(models.user, { through: models.userKeyword });
+      Keyword.belongsToMany(models.user, {
+        through: models.userKeyword,
+        foreignKey: 'keywordId',
+        otherKey: 'userId',
+      });
     }
   }
   Keyword.init(
@@ -26,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
         field: 'link_count',
       },
       totalSearchResult: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.STRING,
         field: 'total_search_result',
       },
       html: {
