@@ -66,6 +66,7 @@ module.exports = {
         type: Sequelize.DATE,
       },
     });
+    await queryInterface.addIndex('keyword', ['keyword']);
 
     await queryInterface.createTable('user_keyword', {
       user_id: {

@@ -44,8 +44,24 @@ const uploadKeywords = async (filePath, userId) => {
   try {
     const result = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
     const keywords = result?.split('\r\n') || [];
+    // Delete duplicate keyword in the CSV file
     const setKeywords = new Set(keywords);
     for (let keyword of setKeywords) {
+      // TODO:
+      // if (keyword already exist in db) {
+      //   if (user do not have this keyword) {
+      //     create a new userKeyword
+      //   }
+      //   if (now - keyword.searchedAt > 1 day) {
+      //     googleSearchScraping()
+      //     update keyword data
+      //   }
+      // }
+      // else {
+      //   googleSearchScraping()
+      //   create a new keyword record
+      //   create a new userKeyword
+      // }
       const data = await googleSearchScraping(keyword);
       const { adWordCount, linkCount, totalSearchResult, html } = data;
       // save to db
