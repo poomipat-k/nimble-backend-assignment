@@ -38,6 +38,7 @@ module.exports = {
       keyword: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
       ad_word_count: {
         type: Sequelize.INTEGER,
@@ -46,7 +47,7 @@ module.exports = {
         type: Sequelize.INTEGER,
       },
       total_search_result: {
-        type: Sequelize.BIGINT,
+        type: Sequelize.STRING,
       },
       html: {
         type: Sequelize.TEXT,
@@ -65,6 +66,7 @@ module.exports = {
         type: Sequelize.DATE,
       },
     });
+    await queryInterface.addIndex('keyword', ['keyword']);
 
     await queryInterface.createTable('user_keyword', {
       user_id: {

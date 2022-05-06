@@ -3,7 +3,7 @@ const path = require('path');
 const multer = require('multer');
 const mime = require('mime-types');
 
-const auth = require('../middlewares/auth');
+const auth = require('../middleware/auth');
 
 const keywordService = require('../services/keyword');
 const { getRandomChars } = require('../utils/string');
@@ -11,6 +11,8 @@ const { getRandomChars } = require('../utils/string');
 const router = express.Router();
 
 const rootPath = path.join(__dirname, '..');
+
+const userDomain = require('../domains/user');
 
 // Multer configuration
 const storage = multer.diskStorage({
@@ -28,12 +30,37 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-router.post('/keyword/upload', auth, upload.single('csvFile'), (req, res) => {
-  const uploadedFile = req.file;
-  const filePath = `${rootPath}/${uploadedFile.path}`;
-  // Read file asynchronously
-  keywordService.uploadKeywords(filePath);
-  res.status(200).json({ response: 'received' });
+router.post(
+  '/keyword/upload',
+  auth,
+  upload.single('csvFile'),
+  async (req, res, next) => {
+    try {
+      const uploadedFile = req.file;
+      const filePath = `${rootPath}/${uploadedFile.path}`;
+      const { userId } = req.userData || {};
+      // early response
+      res.status(200).json({ response: 'received' });
+      await keywordService.uploadKeywords(filePath, userId, next);
+    } catch (err) {
+      console.error(err.message);
+    }
+  }
+);
+
+router.get('/keyword', auth, async (req, res, next) => {
+  try {
+    const { userId } = req.userData || {};
+    const data = await keywordService.getKeywordsByUserId(userId);
+    res.status(200).json(data);
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.get('/test', async (req, res, next) => {
+  const data = await userDomain.findKeyword({ userId: 1, keyword: 'c++' });
+  res.json(data);
 });
 
 module.exports = router;
