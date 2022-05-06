@@ -28,12 +28,32 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-router.post('/keyword/upload', auth, upload.single('csvFile'), (req, res) => {
-  const uploadedFile = req.file;
-  const filePath = `${rootPath}/${uploadedFile.path}`;
-  // Read file asynchronously
-  keywordService.uploadKeywords(filePath);
-  res.status(200).json({ response: 'received' });
+router.post(
+  '/keyword/upload',
+  auth,
+  upload.single('csvFile'),
+  async (req, res, next) => {
+    try {
+      const uploadedFile = req.file;
+      const filePath = `${rootPath}/${uploadedFile.path}`;
+      const { userId } = req.userData || {};
+      // early response
+      res.status(200).json({ response: 'received' });
+      await keywordService.uploadKeywords(filePath, userId, next);
+    } catch (err) {
+      console.error(err.message);
+    }
+  }
+);
+
+router.get('/keyword', auth, async (req, res, next) => {
+  try {
+    const { userId } = req.userData || {};
+    const data = await keywordService.getKeywordsByUserId(userId);
+    res.status(200).json(data);
+  } catch (err) {
+    return next(err);
+  }
 });
 
 module.exports = router;

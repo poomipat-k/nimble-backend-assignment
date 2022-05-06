@@ -9,6 +9,8 @@ const create = ({ email, password }, options) =>
     options
   );
 
+const findOneById = (id) => models.user.findByPk(id);
+
 const findOneByEmail = (email) =>
   models.user.findOne({
     where: {
@@ -16,7 +18,18 @@ const findOneByEmail = (email) =>
     },
   });
 
+const findOneByIdWithKeywords = (id) =>
+  models.user.findByPk(id, {
+    attributes: ['id'],
+    include: {
+      model: models.keyword,
+      attributes: ['id', 'keyword'],
+    },
+  });
+
 module.exports = {
   create,
+  findOneById,
   findOneByEmail,
+  findOneByIdWithKeywords,
 };
